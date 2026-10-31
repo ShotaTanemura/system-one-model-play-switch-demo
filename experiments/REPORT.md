@@ -43,9 +43,13 @@ Each row is a harness. Each column is the model that played it. A cell off the d
 Three frames up to the moment progress stopped, per life.
 
 - 20261031-183318-jev-v0: ![deaths](20261031-183318-jev-v0/deaths.jpg)
+  Progress where each life ended: 200, 202, 202, 202, 203, 205, 565, 571, 581, 582, 586, 589, 590, 592, 858
 - 20261031-183748-clef-omni-v0: ![deaths](20261031-183748-clef-omni-v0/deaths.jpg)
+  Progress where each life ended: 198, 200, 200, 200, 200, 200, 200, 200, 200, 202, 202, 202, 202, 202, 202
 - 20261031-184332-clef-omni-v1: ![deaths](20261031-184332-clef-omni-v1/deaths.jpg)
+  Progress where each life ended: 202, 565, 578, 578, 579, 581, 582, 582, 584, 586, 587, 590, 595, 598, 1006
 - 20261031-184839-jev-v1: ![deaths](20261031-184839-jev-v1/deaths.jpg)
+  Progress where each life ended: 198, 200, 202, 202, 202, 571, 579, 587, 589, 592, 594, 600, 1293, 1323, 1408
 
 ## Superseded rows
 

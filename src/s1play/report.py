@@ -89,6 +89,7 @@ def contact_sheet(title: str, games: Sequence[tuple[str, Path, list[Stall]]]) ->
 
 def progress_chart(rows: Sequence[dict[str, str]]) -> Image.Image:
     """Every game as a dot, with the mean and its 95% CI, one column per ledger row."""
+    rows = [r for r in rows if r["attempt_px"]]
     col_w, left, top, plot_h, foot = 120, 70, 40, 360, 70
     width, height = left + col_w * len(rows) + 20, top + plot_h + foot
     top_px = max(float(r["ci_hi"]) for r in rows)
@@ -142,6 +143,7 @@ def markdown(
     champions: dict[str, str],
     superseded: Sequence[str],
     sheets: dict[str, str],
+    lives: dict[str, list[int]] | None = None,
 ) -> str:
     """`champions` maps a model to its CHAMPION version. `sheets` maps a row id to a sheet path."""
     out = [
@@ -177,14 +179,19 @@ def markdown(
         ]
         for r in (r for r in rows if r["model"] == model):
             delta = r["delta_ci_lo"] or "-"
+            played = (
+                f"{r['mean_best_px']} [{r['ci_lo']}, {r['ci_hi']}]"
+                if r["attempt_px"]
+                else "not played"
+            )
             out.append(
-                f"| {r['harness']} | {r['role']} | {r['mean_best_px']} [{r['ci_lo']}, {r['ci_hi']}] "
+                f"| {r['harness']} | {r['role']} | {played} "
                 f"| {delta} | {r['decision']} | {r['attempt_px'].replace(',', ', ')} |"
             )
         out.append("")
     models = list(champions)
-    harnesses = list(dict.fromkeys(r["harness"] for r in rows))
-    cells = {(r["harness"], r["model"]): r for r in rows}
+    harnesses = list(dict.fromkeys(r["harness"] for r in rows if r["attempt_px"]))
+    cells = {(r["harness"], r["model"]): r for r in rows if r["attempt_px"]}
     out += [
         "## Model against model",
         "",
@@ -208,7 +215,12 @@ def markdown(
             "Three frames up to the moment progress stopped, per life.",
             "",
         ]
-        out += [f"- {row_id}: ![deaths]({path})" for row_id, path in sheets.items()]
+        for row_id, path in sheets.items():
+            out.append(f"- {row_id}: ![deaths]({path})")
+            if lives and row_id in lives:
+                out.append(
+                    f"  Progress where each life ended: {', '.join(map(str, lives[row_id]))}"
+                )
         out.append("")
     if superseded:
         out += [
@@ -242,13 +254,14 @@ def main() -> None:
     shown = current_rows(rows)
     superseded = [r["id"] for r in rows if r not in shown]
     sheets: dict[str, str] = {}
+    lives: dict[str, list[int]] = {}
     for row in shown:
         try:
-            sheet = contact_sheet(
-                f"{row['id']}  {row['harness']} on {row['model']}", read_games(row)
-            )
+            games = read_games(row)
         except FileNotFoundError:
             continue
+        sheet = contact_sheet(f"{row['id']}  {row['harness']} on {row['model']}", games)
+        lives[row["id"]] = sorted(round(s.peak) for _, _, game in games for s in game)
         path = EXPERIMENTS / row["id"] / "deaths.jpg"
         path.parent.mkdir(parents=True, exist_ok=True)
         sheet.save(path, quality=88)
@@ -259,7 +272,7 @@ def main() -> None:
         for d in sorted(HARNESSES.iterdir())
         if (d / "CHAMPION").exists()
     }
-    (EXPERIMENTS / "REPORT.md").write_text(markdown(shown, champions, superseded, sheets))
+    (EXPERIMENTS / "REPORT.md").write_text(markdown(shown, champions, superseded, sheets, lives))
     print(f"wrote {EXPERIMENTS / 'REPORT.md'}, progress.png and {len(sheets)} deaths.jpg sheets")
     if len(sheets) < len(shown):
         print(f"{len(shown) - len(sheets)} rows had no run logs on this machine, so no sheet.")

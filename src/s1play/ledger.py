@@ -17,13 +17,13 @@ class Row:
     hypothesis: str
     gate_action_recall: float | None
     gate_worst_delta: float | None
-    attempts: int
+    attempts: int | None
     attempt_px: tuple[float, ...]
-    mean_best_px: float
-    ci_lo: float
-    ci_hi: float
+    mean_best_px: float | None
+    ci_lo: float | None
+    ci_hi: float | None
     delta_ci_lo: float | None
-    clears: int
+    clears: int | None
     decision: str
     run_dirs: tuple[str, ...]
 
@@ -67,4 +67,5 @@ def champion_row(rows: list[dict[str, str]], model: str, harness: str) -> dict[s
 
 
 def attempt_px(row: dict[str, str]) -> list[float]:
-    return [float(v) for v in row["attempt_px"].split(",")]
+    """Empty for a gate_fail row, which never played."""
+    return [float(v) for v in row["attempt_px"].split(",") if v]

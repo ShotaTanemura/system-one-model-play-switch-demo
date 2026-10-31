@@ -5,3 +5,4 @@ runs/
 .pytest_cache/
 .ruff_cache/
 bench/cache/
+*.log
