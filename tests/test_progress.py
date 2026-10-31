@@ -46,6 +46,13 @@ def test_scroll_of_two_tiles_is_measured_in_nes_pixels():
     assert abs(tracker.total - 32) <= 2
 
 
+def test_a_scroll_of_ninety_nes_pixels_between_slow_steps_is_measured():
+    tracker = ScrollTracker()
+    tracker.update(level_frame(0))
+    moved = tracker.update(level_frame(225))  # 225 px of 640 = 90 NES px
+    assert abs(moved - 90) <= 2
+
+
 def test_standing_still_scrolls_nothing():
     tracker = ScrollTracker()
     tracker.update(level_frame(40))

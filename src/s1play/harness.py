@@ -55,7 +55,7 @@ def load(path: Path) -> Harness:
 
 
 def build_policy(
-    backend: Literal["jev", "clef-omni"], harness: Harness, client: Asker | None = None
+    backend: Literal["jev", "clef-omni", "startlux"], harness: Harness, client: Asker | None = None
 ) -> Policy:
     client = client or SystemOneClient(backend)
     if harness.kind == "choice":

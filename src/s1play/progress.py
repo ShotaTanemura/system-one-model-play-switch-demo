@@ -6,7 +6,9 @@ from PIL import Image
 NES_WIDTH = 256
 DARK = 40.0
 DOWNSCALED_WIDTH = 160
-MAX_SHIFT = 40
+# Widest scroll between two frames that still matches, in downscaled px. A model that takes
+# seconds a step scrolls 80-90 NES px between frames, and a window of 40 (64 NES px) scored it 0.
+MAX_SHIFT = 100
 MIN_CORRELATION = 0.4
 # Sky rows of a game-viewport frame, as fractions of its height. The ground bricks repeat
 # every 16 NES pixels, so they cannot tell a 16 px scroll from none; clouds, hills, pipes

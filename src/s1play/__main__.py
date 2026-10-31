@@ -11,7 +11,7 @@ from s1play.harness import build_policy, load
 from s1play.loop import run
 from s1play.policy import RandomPolicy
 
-MODELS = ["random", "jev", "clef-omni"]
+MODELS = ["random", "jev", "clef-omni", "startlux"]
 
 
 def main() -> None:
@@ -31,9 +31,13 @@ def main() -> None:
 
     live_model = args.model != "random"
     if live_model != (args.harness is not None):
-        p.error("--harness is required with jev or clef-omni, and not allowed with random")
+        p.error(
+            "--harness is required with jev, clef-omni or startlux, and not allowed with random"
+        )
     if args.auto_restart and not live_model:
-        p.error("--auto-restart needs --model jev or clef-omni (it reads the screen state)")
+        p.error(
+            "--auto-restart needs --model jev, clef-omni or startlux (it reads the screen state)"
+        )
     if args.auto_restart and args.dry_run:
         p.error("--auto-restart sends inputs, so it cannot be combined with --dry-run")
 

@@ -102,10 +102,14 @@ def test_games_from_an_extension_run_continue_the_numbering(tmp_path):
 
 
 def test_chart_draws_each_model_in_its_own_color():
-    rows = [ledger_row(), ledger_row(id="s", model="clef-omni", harness="clef-omni/v0")]
+    rows = [
+        ledger_row(),
+        ledger_row(id="s", model="clef-omni", harness="clef-omni/v0"),
+        ledger_row(id="t", model="startlux", harness="startlux/v0"),
+    ]
     chart = progress_chart(rows)
     pixels = {color for _, color in chart.getcolors(maxcolors=chart.width * chart.height)}
-    assert MODEL_COLORS["jev"] in pixels and MODEL_COLORS["clef-omni"] in pixels
+    assert {MODEL_COLORS[m] for m in ("jev", "clef-omni", "startlux")} <= pixels
 
 
 def test_report_lists_champions_lineage_and_a_model_by_harness_table():

@@ -1,12 +1,12 @@
 # s1play
 
-Lets a System One model (Jev or Clef-omni) play a Switch game. Each step grabs the current frame from OBS, asks the model to choose one action from a per-game menu, and sets that action's held controller state on an ESP32-S3 over Zenoh. The controller firmware in `firmware/` is an unmodified snapshot of [switch-controller-esp32s3-mcp-server](../switch-controller-esp32s3-mcp-server) at `d12f9e6`.
+Lets a System One model (Jev, Clef-omni or StartLux-Decision) play a Switch game. Each step grabs the current frame from OBS, asks the model to choose one action from a per-game menu, and sets that action's held controller state on an ESP32-S3 over Zenoh. The controller firmware in `firmware/` is an unmodified snapshot of [switch-controller-esp32s3-mcp-server](../switch-controller-esp32s3-mcp-server) at `d12f9e6`.
 
 Games: Super Mario Bros. (`mario`) and Donkey Kong Country (`dkc`), played through Nintendo Switch Online.
 
 ## Data leaves your machine
 
-The `jev` and `clef-omni` models send every game frame to TypeSafe or Cloudflare. The `random` model and `--dry-run` send nothing outside this machine.
+The `jev` and `clef-omni` models send every game frame to TypeSafe or Cloudflare. The `startlux` model sends frames to the server at `STARTLUX_URL`, which is this machine unless you point it elsewhere. The `random` model and `--dry-run` send nothing outside this machine.
 
 ## Setup
 
@@ -20,13 +20,15 @@ The `jev` and `clef-omni` models send every game frame to TypeSafe or Cloudflare
    export TYPESAFE_API_KEY=...          # jev
    export CLOUDFLARE_ACCOUNT_ID=...     # clef-omni
    export CLOUDFLARE_API_TOKEN=...      # clef-omni
+   export STARTLUX_URL=http://localhost:8090   # startlux, optional (this is the default)
    ```
 
-5. `uv sync`
+5. For `startlux`, run [StartLux-Decision](https://github.com/StartLuxLabs/StartLux-Decision) from its own checkout and download an Instant MLX checkpoint (`hf download startlux-models/StartLux-Decision-v1.1-2B-Instant-MLX-8bit --local-dir <checkpoint-dir>`) and serve it on Apple Silicon with `startlux-decide serve --backend mlx --model <checkpoint-dir> --host 127.0.0.1 --port 8090`. The server has no API key, so keep it on loopback. Each question costs one image pass, so on one Apple Silicon Mac the 9-question v0 harness takes about 2.4 s a step with the 2B checkpoint, against 150-270 ms for `jev` and `clef-omni`. Clear `bench/mario-1-1/cache` whenever you serve a different checkpoint. The weights are CC BY-NC 4.0, so non-commercial use only.
+6. `uv sync`
 
 ## Models and harnesses
 
-`--model random` picks a random action each step and sends nothing outside this machine. `--model jev` and `--model clef-omni` need `--harness harnesses/<model>/vN.toml`. A harness is everything between the model and the controller that can change:
+`--model random` picks a random action each step and sends nothing outside this machine. `--model jev`, `--model clef-omni` and `--model startlux` need `--harness harnesses/<model>/vN.toml`. A harness is everything between the model and the controller that can change:
 
 | `kind` | What it does |
 |---|---|

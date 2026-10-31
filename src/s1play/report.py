@@ -10,7 +10,7 @@ from s1play import ledger
 
 EXPERIMENTS = Path("experiments")
 HARNESSES = Path("harnesses")
-MODEL_COLORS = {"jev": (0, 114, 178), "clef-omni": (230, 159, 0)}
+MODEL_COLORS = {"jev": (0, 114, 178), "clef-omni": (230, 159, 0), "startlux": (0, 158, 115)}
 INK = (30, 30, 30)
 GRID = (222, 222, 222)
 BACKGROUND = (255, 255, 255)

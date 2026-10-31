@@ -172,6 +172,39 @@ def test_questions_policy_unwraps_cloudflare_result_and_applies_the_law(monkeypa
     assert decision.scores["jump_now"] == 0.9
 
 
+def test_questions_policy_over_local_startlux_sends_no_auth_and_honors_the_url(monkeypatch):
+    monkeypatch.setenv("STARTLUX_URL", "http://mac.local:9000")
+    seen = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen["url"] = str(request.url)
+        seen["auth"] = request.headers.get("authorization")
+        seen["body"] = json.loads(request.content)
+        return httpx.Response(200, json=noul_body(jump_now=0.9))
+
+    policy = QuestionsPolicy(client_with(handler, "startlux"), RunnerLaw())
+    decision = policy.decide(b"img", MARIO_Q)
+
+    assert seen["url"] == "http://mac.local:9000/v1/systemone"
+    assert seen["auth"] is None
+    assert seen["body"]["model"] == "startlux"
+    assert seen["body"]["images"][0].startswith("data:image/jpeg;base64,")
+    assert decision.action == "RUN_JUMP"
+
+
+def test_startlux_url_defaults_to_localhost(monkeypatch):
+    monkeypatch.delenv("STARTLUX_URL", raising=False)
+    seen = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen["url"] = str(request.url)
+        return httpx.Response(200, json=noul_body())
+
+    QuestionsPolicy(client_with(handler, "startlux"), RunnerLaw()).decide(b"img", MARIO_Q)
+
+    assert seen["url"] == "http://localhost:8090/v1/systemone"
+
+
 def test_http_error_message_includes_server_response(monkeypatch):
     monkeypatch.setenv("TYPESAFE_API_KEY", "test-key")
 

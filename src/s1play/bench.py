@@ -39,7 +39,7 @@ class CachingClient:
     """Serves repeated (backend, questions, frame) requests from disk.
 
     The key leaves out the model version, so clear the cache directory when `jev-latest`
-    or `clef-omni` changes underneath it.
+    or `clef-omni` changes underneath it, or when you serve a different `startlux` checkpoint.
     """
 
     def __init__(self, backend: str, make_inner: Callable[[], Asker], cache: Path = CACHE) -> None:
@@ -106,7 +106,7 @@ def gate(candidate: Score, champion: Score) -> Gate:
 
 
 def decide_all(
-    backend: Literal["jev", "clef-omni"],
+    backend: Literal["jev", "clef-omni", "startlux"],
     harness: Harness,
     rows: Sequence[Mapping],
     client: Asker,
@@ -122,7 +122,7 @@ def decide_all(
 
 
 def evaluate(
-    backend: Literal["jev", "clef-omni"], harness: Harness, rows: Sequence[Mapping]
+    backend: Literal["jev", "clef-omni", "startlux"], harness: Harness, rows: Sequence[Mapping]
 ) -> tuple[Score, CachingClient]:
     client = CachingClient(backend, lambda: SystemOneClient(backend))
     return score(rows, decide_all(backend, harness, rows, client)), client
@@ -142,7 +142,7 @@ def show(name: str, s: Score) -> None:
 
 def main() -> None:
     p = argparse.ArgumentParser(prog="s1play.bench")
-    p.add_argument("--model", choices=["jev", "clef-omni"], required=True)
+    p.add_argument("--model", choices=["jev", "clef-omni", "startlux"], required=True)
     p.add_argument("--harness", type=Path, required=True)
     p.add_argument("--champion", type=Path, help="default: the model's CHAMPION harness")
     p.add_argument("--limit", type=int, help="use only the first N bench frames")
