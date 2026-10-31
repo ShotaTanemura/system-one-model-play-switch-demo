@@ -1,0 +1,4 @@
+[tools]
+python = "3.13"
+uv = "latest"
+cmake = "4.4.2"
