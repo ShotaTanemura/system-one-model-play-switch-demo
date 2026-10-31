@@ -10,7 +10,7 @@ from s1play.policy import SystemOneClient, noul_questions
 def main() -> None:
     p = argparse.ArgumentParser(prog="s1play.probe", description="Ask the model about saved frames")
     p.add_argument("run_dir", type=Path)
-    p.add_argument("--backend", choices=["jev", "clef-omni"], required=True)
+    p.add_argument("--backend", choices=["jev", "clef-omni", "startlux"], required=True)
     p.add_argument("--steps", required=True, help="comma-separated step numbers, e.g. 0,26,33")
     p.add_argument("--game", choices=list(GAMES), default="mario")
     p.add_argument(

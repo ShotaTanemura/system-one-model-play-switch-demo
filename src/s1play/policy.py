@@ -89,7 +89,7 @@ def build_jev_request(model: str, frame: Frame, questions: Questions) -> dict:
 class SystemOneClient:
     def __init__(
         self,
-        backend: Literal["jev", "clef-omni"],
+        backend: Literal["jev", "clef-omni", "startlux"],
         http: httpx.Client | None = None,
         timeout_s: float = 10.0,
     ) -> None:
@@ -99,7 +99,7 @@ class SystemOneClient:
             self._model = "jev-latest"
             self._build = build_jev_request
             self._headers = {"TypeSafe-Danger-Zone-Images": "true"}
-        else:
+        elif backend == "clef-omni":
             account = os.environ["CLOUDFLARE_ACCOUNT_ID"]
             self._url = (
                 f"https://api.cloudflare.com/client/v4/accounts/{account}"
@@ -109,12 +109,20 @@ class SystemOneClient:
             self._model = "clef-omni"
             self._build = build_request
             self._headers = {}
+        else:
+            base = os.environ.get("STARTLUX_URL", "http://localhost:8090")
+            self._url = f"{base}/v1/systemone"
+            self._key = None
+            self._model = "startlux"
+            self._build = build_request
+            self._headers = {}
         self._http = http or httpx.Client(timeout=timeout_s)
 
     def ask(self, frame: Frame, questions: Questions) -> dict:
+        auth = {"Authorization": f"Bearer {self._key}"} if self._key else {}
         resp = self._http.post(
             self._url,
-            headers={"Authorization": f"Bearer {self._key}", **self._headers},
+            headers={**auth, **self._headers},
             json=self._build(self._model, frame, questions),
         )
         if resp.is_error:

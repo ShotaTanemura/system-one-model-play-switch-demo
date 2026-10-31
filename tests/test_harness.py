@@ -10,7 +10,7 @@ from s1play.law import LAWS, LawConfig, RunnerLaw
 from s1play.policy import ChoicePolicy, choice_questions, noul_questions
 
 ROOT = Path(__file__).parent.parent / "harnesses"
-MODELS = ["jev", "clef-omni"]
+MODELS = ["jev", "clef-omni", "startlux"]
 
 
 @pytest.mark.parametrize("model", MODELS)

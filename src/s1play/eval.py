@@ -176,7 +176,7 @@ def subprocess_play(model: str, harness: Path, obs_source: str, listen: str) -> 
 
 def main() -> None:
     p = argparse.ArgumentParser(prog="s1play.eval")
-    p.add_argument("--model", choices=["jev", "clef-omni"], required=True)
+    p.add_argument("--model", choices=["jev", "clef-omni", "startlux"], required=True)
     p.add_argument("--harness", type=Path, required=True)
     p.add_argument("--role", choices=ROLES, required=True)
     p.add_argument("--attempts", type=int, default=5)
