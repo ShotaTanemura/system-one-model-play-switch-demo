@@ -122,8 +122,8 @@ def run_eval(
     harness = load(harness_path)
     champion_px = None
     if role == "candidate":
-        champ_name = (harness_path.parent / "CHAMPION").read_text().strip()
-        champ = ledger.champion_row(ledger.read(ledger_path), model, champ_name)
+        champ_name = (harness_path.parent.parent / model / "CHAMPION").read_text().strip()
+        champ = ledger.champion_row(ledger.read(ledger_path), model, f"{model}/{champ_name}")
         if champ is None:
             raise EvalError(f"No {model} {champ_name} baseline in {ledger_path}. Run it first.")
         champion_px = ledger.attempt_px(champ)
@@ -143,7 +143,7 @@ def run_eval(
         id=run_id,
         date=stamp,
         model=model,
-        harness=harness.name,
+        harness=f"{harness_path.parent.name}/{harness.name}",
         parent=harness.parent,
         kind=harness.kind,
         role=role,

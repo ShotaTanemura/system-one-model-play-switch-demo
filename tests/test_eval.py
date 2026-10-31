@@ -114,6 +114,7 @@ def test_baseline_run_writes_a_ledger_row(tmp_path):
 
     saved = ledger.read(path)[0]
     assert saved["id"] == "20261031-190000-jev-v0"
+    assert saved["harness"] == "jev/v0"
     assert (saved["attempts"], saved["mean_best_px"], saved["decision"]) == (
         "5",
         "300.0",
@@ -193,3 +194,18 @@ def test_ledger_writes_one_header_and_keeps_free_text_on_one_line(tmp_path):
     row = ledger.read(path)[0]
     assert list(row) == ledger.COLUMNS
     assert len(path.read_text().splitlines()) == 2
+
+
+def test_transfer_records_whose_harness_it_ran_and_is_never_a_champion_row(tmp_path):
+    path = baseline(tmp_path)
+    other = ROOT.parent / "clef-omni" / "v1.toml"
+
+    row = run_eval(
+        "jev", other, "transfer", 5, fake_play([[700] * 5]), "t2",
+        ledger_path=path, runs_dir=tmp_path / "runs2",
+    )  # fmt: skip
+    ledger.append(row, path)
+
+    assert (row.harness, row.decision) == ("clef-omni/v1", "transfer")
+    champion = ledger.champion_row(ledger.read(path), "jev", "jev/v0")
+    assert champion is not None and champion["id"] == "t0-jev-v0"
