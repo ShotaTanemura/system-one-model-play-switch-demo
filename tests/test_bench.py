@@ -62,7 +62,8 @@ def test_score_counts_dead_frames_only_for_the_screen_questions(tmp_path):
 
     result = score(rows, decide_all("jev", V0, rows, client, directory))
 
-    assert result.action_acc == pytest.approx(2 / 3)
+    assert result.by_action == {"RUN": 1.0, "RUN_JUMP": 0.5}
+    assert result.action_recall == pytest.approx(0.75)
     assert result.questions["jump_now"] == pytest.approx(0.75)
     assert result.questions["game_over"] == 1.0
 
@@ -87,7 +88,7 @@ def test_each_frame_gets_a_fresh_law_so_a_jump_hold_does_not_leak(tmp_path):
     ],
     ids=["small drop", "drop over 0.05", "action regresses", "all better"],
 )
-def test_gate_needs_action_accuracy_and_no_big_question_drop(candidate, passed, worst):
+def test_gate_needs_action_recall_and_no_big_question_drop(candidate, passed, worst):
     champion = Score(0.8, {"a": 0.9, "b": 0.86})
     result = gate(candidate, champion)
     assert result.passed is passed

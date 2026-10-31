@@ -2,7 +2,7 @@ import argparse
 import hashlib
 import json
 from collections.abc import Callable, Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Literal
 
@@ -19,8 +19,12 @@ SCREENS = ("transition", "game_over", "title_screen", "level_clear")
 
 @dataclass(frozen=True)
 class Score:
-    action_acc: float
+    """`action_recall` is the mean recall over the action classes. Plain accuracy would
+    reward a harness for never jumping, since most live frames are RUN or WAIT."""
+
+    action_recall: float
     questions: Mapping[str, float | None]
+    by_action: Mapping[str, float] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -73,7 +77,10 @@ def balanced_accuracy(pairs: Sequence[tuple[bool, bool]]) -> float | None:
 def score(rows: Sequence[Mapping], decisions: Sequence[Decision]) -> Score:
     """Dead frames count only for the screen questions, since no input has an effect on them."""
     live = [(r, d) for r, d in zip(rows, decisions, strict=True) if not r["dead"]]
-    action_acc = sum(r["action"] == d.action for r, d in live) / len(live)
+    by_action = {}
+    for action in sorted({r["action"] for r, _ in live}):
+        of_class = [d for r, d in live if r["action"] == action]
+        by_action[action] = sum(d.action == action for d in of_class) / len(of_class)
     asked = set.intersection(*(set(d.scores) for d in decisions)) & set(rows[0]["labels"])
     questions = {}
     for qid in sorted(asked):
@@ -81,7 +88,7 @@ def score(rows: Sequence[Mapping], decisions: Sequence[Decision]) -> Score:
         questions[qid] = balanced_accuracy(
             [(r["labels"][qid], d.scores[qid] > THRESHOLD) for r, d in used]
         )
-    return Score(action_acc, questions)
+    return Score(sum(by_action.values()) / len(by_action), questions, by_action)
 
 
 def gate(candidate: Score, champion: Score) -> Gate:
@@ -93,7 +100,7 @@ def gate(candidate: Score, champion: Score) -> Gate:
     deltas = {q: candidate.questions[q] - champion.questions[q] for q in shared}
     worst = min(deltas, key=deltas.get) if deltas else ""
     worst_delta = deltas.get(worst, 0.0)
-    action_delta = candidate.action_acc - champion.action_acc
+    action_delta = candidate.action_recall - champion.action_recall
     passed = action_delta >= 0 and worst_delta >= -MAX_QUESTION_DROP
     return Gate(passed, action_delta, worst, worst_delta)
 
@@ -127,7 +134,8 @@ def champion_path(model: str) -> Path:
 
 
 def show(name: str, s: Score) -> None:
-    print(f"{name}: action accuracy {s.action_acc:.3f}")
+    per_class = " ".join(f"{a} {r:.2f}" for a, r in s.by_action.items())
+    print(f"{name}: action recall {s.action_recall:.3f} ({per_class})")
     for qid, acc in s.questions.items():
         print(f"  {qid:<20} {'n/a' if acc is None else f'{acc:.3f}'}")
 
