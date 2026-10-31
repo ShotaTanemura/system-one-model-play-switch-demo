@@ -1,4 +1,5 @@
 import json
+import shutil
 from pathlib import Path
 
 import pytest
@@ -14,7 +15,8 @@ from s1play.eval import (
     verdict,
 )
 
-ROOT = Path(__file__).parent.parent / "harnesses" / "jev"
+REAL = Path(__file__).parent.parent / "harnesses"
+ROOT = REAL / "jev"
 LEVEL = 3328.0
 
 
@@ -125,32 +127,44 @@ def test_baseline_run_writes_a_ledger_row(tmp_path):
     assert play.calls == [(tmp_path / "runs" / "20261031-190000-jev-v0", 5)]
 
 
-def baseline(tmp_path):
+@pytest.fixture
+def tree(tmp_path):
+    """A harness tree of its own, so these tests do not depend on which version is champion."""
+    root = tmp_path / "harnesses"
+    for model in ("jev", "clef-omni"):
+        (root / model).mkdir(parents=True)
+        for version in ("v0", "v1"):
+            shutil.copy(REAL / model / f"{version}.toml", root / model / f"{version}.toml")
+        (root / model / "CHAMPION").write_text("v0\n")
+    return root
+
+
+def baseline(tmp_path, tree):
     path = tmp_path / "ledger.tsv"
     row = run_eval(
-        "jev", ROOT / "v0.toml", "baseline", 5, fake_play([[100, 200, 300, 400, 500]]), "t0",
+        "jev", tree / "jev" / "v0.toml", "baseline", 5, fake_play([[100, 200, 300, 400, 500]]), "t0",
         ledger_path=path, runs_dir=tmp_path / "runs0",
     )  # fmt: skip
     ledger.append(row, path)
     return path
 
 
-def test_winning_candidate_is_gated_against_the_champions_ledger_row(tmp_path):
-    path = baseline(tmp_path)
+def test_winning_candidate_is_gated_against_the_champions_ledger_row(tmp_path, tree):
+    path = baseline(tmp_path, tree)
     row = run_eval(
-        "jev", ROOT / "v1.toml", "candidate", 5, fake_play([[900] * 5]), "t1",
+        "jev", tree / "jev" / "v1.toml", "candidate", 5, fake_play([[900] * 5]), "t1",
         ledger_path=path, runs_dir=tmp_path / "runs1", gate=(0.91, -0.01),
     )  # fmt: skip
     assert (row.decision, row.parent, row.gate_action_recall) == ("champion", "v0", 0.91)
     assert row.delta_ci_lo is not None and row.delta_ci_lo > 0
 
 
-def test_overlapping_candidate_runs_one_extension_and_pools_both_batches(tmp_path):
-    path = baseline(tmp_path)
+def test_overlapping_candidate_runs_one_extension_and_pools_both_batches(tmp_path, tree):
+    path = baseline(tmp_path, tree)
     play = fake_play([[100, 200, 300, 400, 500], [100, 200, 300, 400, 500]])
 
     row = run_eval(
-        "jev", ROOT / "v1.toml", "candidate", 5, play, "t1",
+        "jev", tree / "jev" / "v1.toml", "candidate", 5, play, "t1",
         ledger_path=path, runs_dir=tmp_path / "runs1",
     )  # fmt: skip
 
@@ -189,16 +203,16 @@ def test_failed_play_raises_with_the_run_dir(tmp_path):
         )  # fmt: skip
 
 
-def test_ledger_writes_one_header_and_keeps_free_text_on_one_line(tmp_path):
-    path = baseline(tmp_path)
+def test_ledger_writes_one_header_and_keeps_free_text_on_one_line(tmp_path, tree):
+    path = baseline(tmp_path, tree)
     row = ledger.read(path)[0]
     assert list(row) == ledger.COLUMNS
     assert len(path.read_text().splitlines()) == 2
 
 
-def test_transfer_records_whose_harness_it_ran_and_is_never_a_champion_row(tmp_path):
-    path = baseline(tmp_path)
-    other = ROOT.parent / "clef-omni" / "v1.toml"
+def test_transfer_records_whose_harness_it_ran_and_is_never_a_champion_row(tmp_path, tree):
+    path = baseline(tmp_path, tree)
+    other = tree / "clef-omni" / "v1.toml"
 
     row = run_eval(
         "jev", other, "transfer", 5, fake_play([[700] * 5]), "t2",

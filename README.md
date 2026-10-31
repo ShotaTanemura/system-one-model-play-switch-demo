@@ -65,6 +65,8 @@ uv run python -m s1play.eval --model jev --harness harnesses/jev/v1.toml --role 
 
 `bench` passes when action recall (mean recall over RUN, RUN_JUMP and WAIT) does not drop and no question's balanced accuracy drops by more than 0.05. `eval` scores each game by its best scroll progress in NES pixels, with a clear counting as `--level-px`. A candidate wins when the bootstrap 95% CI of its mean minus the champion's is above zero. If that CI includes zero, `eval` plays 5 more games once and pools them. `--role transfer` records a harness on the other model without judging it. `eval` writes no row when a run is interrupted or fails. Fix the cause and run it again.
 
+`uv run python -m s1play.report` rebuilds `experiments/REPORT.md` from the ledger: the champions, each model's lineage, a model-by-harness table, `progress.png`, and a `deaths.jpg` per row with three frames per life up to the moment progress stopped. The sheets need that row's logs in `runs/`.
+
 The labels were written by Claude and checked by a human on a local page: `uv run python -m s1play.review`.
 
 ## Tools
