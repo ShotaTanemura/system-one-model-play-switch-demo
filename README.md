@@ -6,7 +6,7 @@ Games: Super Mario Bros. (`mario`) and Donkey Kong Country (`dkc`), played throu
 
 ## Data leaves your machine
 
-The `jev` and `clef-omni` policies send every game frame to TypeSafe or Cloudflare. The `random` policy and `--dry-run` send nothing outside this machine.
+The `jev` and `clef-omni` models send every game frame to TypeSafe or Cloudflare. The `random` model and `--dry-run` send nothing outside this machine.
 
 ## Setup
 
@@ -24,13 +24,16 @@ The `jev` and `clef-omni` policies send every game frame to TypeSafe or Cloudfla
 
 5. `uv sync`
 
-## Policies
+## Models and harnesses
 
-| `--policy` | What it does |
+`--model random` picks a random action each step and sends nothing outside this machine. `--model jev` and `--model clef-omni` need `--harness harnesses/<model>/vN.toml`. A harness is everything between the model and the controller that can change:
+
+| `kind` | What it does |
 |---|---|
-| `random` | Picks a random action each step. Nothing leaves this machine. |
-| `jev`, `clef-omni` | Asks the model several yes/no questions about each frame (enemy ahead, gap ahead, airborne, game over, ...). A small local rule in `law.py` turns the probabilities into RUN, RUN_JUMP or WAIT. |
-| `jev-choice`, `clef-omni-choice` | Baseline: the model picks one action from the game's menu directly. |
+| `questions` | Asks the model several yes/no questions about each frame (enemy ahead, gap ahead, airborne, game over, ...). The local rule named by `law` (see `LAWS` in `law.py`, tuned by `[law_params]`) turns the probabilities into RUN, RUN_JUMP or WAIT. |
+| `choice` | Baseline. The model picks one action from the menu directly. It also answers the `transition`, `game_over` and `title_screen` questions so auto-restart works. |
+
+`v0.toml` is today's questions and law, and `v0-choice.toml` is the choice baseline. `harnesses/<model>/CHAMPION` names the current best version.
 
 Actions are held controller states, not timed macros. The firmware keeps the last state until the next one arrives and releases everything if none arrives for one second.
 
@@ -39,10 +42,10 @@ Actions are held controller states, not timed macros. The firmware keeps the las
 Start Super Mario Bros. by hand (or let `--auto-restart` do it after a game over), then:
 
 ```sh
-uv run python -m s1play --game mario --policy random --dry-run             # frames only, no inputs
-uv run python -m s1play --game mario --policy random --obs-source avermedia
-uv run python -m s1play --game mario --policy jev --obs-source avermedia --max-steps 60
-uv run python -m s1play --game mario --policy clef-omni --obs-source avermedia --auto-restart --attempts 10
+uv run python -m s1play --game mario --model random --dry-run             # frames only, no inputs
+uv run python -m s1play --game mario --model random --obs-source avermedia
+uv run python -m s1play --game mario --model jev --harness harnesses/jev/v0.toml --obs-source avermedia --max-steps 60
+uv run python -m s1play --game mario --model clef-omni --harness harnesses/clef-omni/v0.toml --obs-source avermedia --auto-restart --attempts 10
 ```
 
 Ctrl-C stops the run and releases all buttons. Each run writes `runs/<timestamp>/log.jsonl` and the frames it saw. With `jev` or `clef-omni` the log also has `attempt`, `life`, `progress` (NES pixels scrolled this life), `best_progress` and `cleared`. The run ends when the HUD world number changes (a cleared level).
