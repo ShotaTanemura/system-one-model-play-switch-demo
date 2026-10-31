@@ -26,6 +26,7 @@ def main() -> None:
     p.add_argument("--max-steps", type=int)
     p.add_argument("--auto-restart", action="store_true", help="restart after game over")
     p.add_argument("--attempts", type=int, help="stop after this many games (with --auto-restart)")
+    p.add_argument("--run-dir", type=Path, help="default: runs/<timestamp>")
     args = p.parse_args()
 
     live_model = args.model != "random"
@@ -49,7 +50,7 @@ def main() -> None:
         controller.wait_for_device()
 
     episodes = EpisodeManager() if live_model else None
-    run_dir = Path("runs") / datetime.now().strftime("%Y%m%d-%H%M%S")
+    run_dir = args.run_dir or Path("runs") / datetime.now().strftime("%Y%m%d-%H%M%S")
     try:
         run(
             frames,

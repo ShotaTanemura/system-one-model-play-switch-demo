@@ -50,6 +50,23 @@ uv run python -m s1play --game mario --model clef-omni --harness harnesses/clef-
 
 Ctrl-C stops the run and releases all buttons. Each run writes `runs/<timestamp>/log.jsonl` and the frames it saw. With `jev` or `clef-omni` the log also has `attempt`, `life`, `progress` (NES pixels scrolled this life), `best_progress` and `cleared`. The run ends when the HUD world number changes (a cleared level).
 
+## Comparing harnesses
+
+Two checks decide whether a harness beats the model's champion (`harnesses/<model>/CHAMPION`).
+
+```sh
+# Offline gate on the 200 labeled frames in bench/mario-1-1/. Uncached frames go to the model API.
+uv run python -m s1play.bench --model jev --harness harnesses/jev/v1.toml
+
+# Live verdict. Plays 5 games on the Switch, appends a row to experiments/ledger.tsv.
+uv run python -m s1play.eval --model jev --harness harnesses/jev/v0.toml --role baseline
+uv run python -m s1play.eval --model jev --harness harnesses/jev/v1.toml --role candidate
+```
+
+`bench` passes when action recall (mean recall over RUN, RUN_JUMP and WAIT) does not drop and no question's balanced accuracy drops by more than 0.05. `eval` scores each game by its best scroll progress in NES pixels, with a clear counting as `--level-px`. A candidate wins when the bootstrap 95% CI of its mean minus the champion's is above zero. If that CI includes zero, `eval` plays 5 more games once and pools them. `--role transfer` records a harness on the other model without judging it. `eval` writes no row when a run is interrupted or fails. Fix the cause and run it again.
+
+The labels were written by Claude and checked by a human on a local page: `uv run python -m s1play.review`.
+
 ## Tools
 
 ```sh
