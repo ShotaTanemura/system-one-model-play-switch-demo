@@ -6,7 +6,7 @@ from typing import Literal
 
 from s1play.games import GameProfile
 from s1play.law import LAWS
-from s1play.policy import ChoicePolicy, Policy, QuestionsPolicy, SystemOneClient
+from s1play.policy import Asker, ChoicePolicy, Policy, QuestionsPolicy, SystemOneClient
 
 
 @dataclass(frozen=True)
@@ -54,8 +54,10 @@ def load(path: Path) -> Harness:
     return harness
 
 
-def build_policy(backend: Literal["jev", "clef-omni"], harness: Harness) -> Policy:
-    client = SystemOneClient(backend)
+def build_policy(
+    backend: Literal["jev", "clef-omni"], harness: Harness, client: Asker | None = None
+) -> Policy:
+    client = client or SystemOneClient(backend)
     if harness.kind == "choice":
         return ChoicePolicy(client)
     return QuestionsPolicy(client, LAWS[harness.law](harness.law_params))

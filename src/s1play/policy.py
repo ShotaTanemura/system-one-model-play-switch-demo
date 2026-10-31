@@ -28,6 +28,10 @@ class Policy(Protocol):
     def decide(self, frame: Frame, profile: GameProfile) -> Decision: ...
 
 
+class Asker(Protocol):
+    def ask(self, frame: Frame, questions: Questions) -> dict: ...
+
+
 class RandomPolicy:
     def __init__(self, seed: int | None = None) -> None:
         self._rng = random.Random(seed)
@@ -121,7 +125,7 @@ class SystemOneClient:
 
 
 class ChoicePolicy:
-    def __init__(self, client: SystemOneClient) -> None:
+    def __init__(self, client: Asker) -> None:
         self._client = client
 
     def decide(self, frame: Frame, profile: GameProfile) -> Decision:
@@ -137,7 +141,7 @@ class ChoicePolicy:
 
 
 class QuestionsPolicy:
-    def __init__(self, client: SystemOneClient, law: RunnerLaw) -> None:
+    def __init__(self, client: Asker, law: RunnerLaw) -> None:
         self._client = client
         self._law = law
 
