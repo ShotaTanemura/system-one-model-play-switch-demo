@@ -39,7 +39,7 @@ class CachingClient:
     """Serves repeated (backend, questions, frame) requests from disk.
 
     The key leaves out the model version, so clear the cache directory when `jev-latest`
-    or `clef-omni` changes underneath it.
+    or `clef-omni` changes underneath it, or when you serve a different `startlux` checkpoint.
     """
 
     def __init__(self, backend: str, make_inner: Callable[[], Asker], cache: Path = CACHE) -> None:

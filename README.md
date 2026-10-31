@@ -23,7 +23,7 @@ The `jev` and `clef-omni` models send every game frame to TypeSafe or Cloudflare
    export STARTLUX_URL=http://localhost:8090   # startlux, optional (this is the default)
    ```
 
-5. For `startlux`, run [StartLux-Decision](https://github.com/StartLuxLabs/StartLux-Decision) from its own checkout and start a server on Apple Silicon with an Instant MLX checkpoint (`startlux-decide serve --backend mlx --model <checkpoint-dir> --port 8090`). The weights are CC BY-NC 4.0, so non-commercial use only.
+5. For `startlux`, run [StartLux-Decision](https://github.com/StartLuxLabs/StartLux-Decision) from its own checkout and download an Instant MLX checkpoint (`hf download startlux-models/StartLux-Decision-v1.1-2B-Instant-MLX-8bit --local-dir <checkpoint-dir>`) and serve it on Apple Silicon with `startlux-decide serve --backend mlx --model <checkpoint-dir> --host 127.0.0.1 --port 8090`. The server has no API key, so keep it on loopback. Each question costs one image pass, so on one Apple Silicon Mac the 9-question v0 harness takes about 2.4 s a step with the 2B checkpoint, against 150-270 ms for `jev` and `clef-omni`. Clear `bench/mario-1-1/cache` whenever you serve a different checkpoint. The weights are CC BY-NC 4.0, so non-commercial use only.
 6. `uv sync`
 
 ## Models and harnesses

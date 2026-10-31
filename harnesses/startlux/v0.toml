@@ -1,6 +1,6 @@
 kind = "questions"
 law = "runner_v1"
-hypothesis = "Baseline: the questions and law as first written."
+hypothesis = "Baseline: the questions and law as first written. Served by StartLux-Decision-v1.1-2B-Instant-MLX-8bit."
 
 [law_params]
 threshold = 0.5
