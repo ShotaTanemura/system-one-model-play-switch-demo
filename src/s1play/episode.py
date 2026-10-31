@@ -70,7 +70,8 @@ class EpisodeManager:
             self._playing = False
             self.best_progress = max(self.best_progress, self._scroll.total)
             self._scroll.reset()
-        elif not game_over and not title:
+        # The title screen's attract demo plays 1-1 without a TIME counter. It is not a game.
+        elif not game_over and not title and time_visible(frame):
             self._playing = True
             self._game_seen = True
             if self._hud_template is None:

@@ -20,10 +20,17 @@ def jpeg(im: Image.Image) -> bytes:
     return buf.getvalue()
 
 
-def level_frame(offset_px: int) -> bytes:
+def draw_timer(draw: ImageDraw.ImageDraw) -> None:
+    x0, y0 = int(0.80 * W), int(0.07 * H)
+    draw.rectangle([x0, y0, x0 + 40, y0 + 12], fill=(255, 255, 255))
+
+
+def level_frame(offset_px: int, timer: bool = True) -> bytes:
     """Sky with fixed random landmarks; the camera has moved right by offset_px."""
     im = Image.new("RGB", (W, H), (136, 136, 255))
     draw = ImageDraw.Draw(im)
+    if timer:
+        draw_timer(draw)
     rng = random.Random(7)
     for _ in range(40):
         x, y = rng.randrange(0, 1400), rng.randrange(100, 360)
@@ -59,6 +66,7 @@ def hud_frame(last_digit_columns: int, background=(136, 136, 255)) -> bytes:
     x0, y0 = int(0.60 * W), int(0.07 * H)
     draw.rectangle([x0, y0, x0 + 20, y0 + 12], fill=(255, 255, 255))
     draw.rectangle([x0 + 30, y0, x0 + 30 + last_digit_columns, y0 + 12], fill=(255, 255, 255))
+    draw_timer(draw)
     return jpeg(im)
 
 
@@ -71,8 +79,7 @@ def test_hud_change_ignores_background_and_detects_a_new_digit():
 def time_frame(digits: bool = True) -> bytes:
     im = Image.new("RGB", (W, H), (136, 136, 255))
     if digits:
-        x0, y0 = int(0.80 * W), int(0.07 * H)
-        ImageDraw.Draw(im).rectangle([x0, y0, x0 + 40, y0 + 12], fill=(255, 255, 255))
+        draw_timer(ImageDraw.Draw(im))
     return jpeg(im)
 
 

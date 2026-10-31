@@ -96,4 +96,4 @@ Unit tests pass. On real hardware (ESP32-S3, OBS, Super Mario Bros.):
 - The firmware connects to the host once, at boot. After a host restart, press RESET on the ESP32 while the host is listening.
 - The first START press on the title screen is often lost. Auto-restart retries until the TIME counter shows.
 
-Not yet run on hardware: the questions policy (`jev`, `clef-omni`), auto-restart and level-clear detection. Jev's request format works for the choice policy; its `noul` answer shape is assumed. The Clef-omni policies have not run against the live API.
+The questions policy (`jev`, `clef-omni`) and auto-restart have run on hardware: 5 auto-restarted games each with the `v0` harnesses. Level-clear detection has not fired yet, so it is untested. A `set_state` round trip and a model call take about 10 ms and 150-270 ms, so a game of about 100-175 steps lasts well under a minute.
