@@ -1,4 +1,4 @@
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 
 
@@ -43,3 +43,8 @@ class RunnerLaw:
             self._a_held = True
             return "RUN_JUMP"
         return "RUN"
+
+
+LAWS: Mapping[str, Callable[[Mapping[str, float]], RunnerLaw]] = {
+    "runner_v1": lambda params: RunnerLaw(LawConfig(**params)),
+}

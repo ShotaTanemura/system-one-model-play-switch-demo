@@ -15,38 +15,6 @@ class GameProfile:
     questions: Mapping[str, str] = field(default_factory=dict)
 
 
-MARIO_QUESTIONS = {
-    "jump_now": (
-        "Should Mario press the jump button right now? Answer yes if Mario stands on the ground "
-        "and an enemy (a brown Goomba or a Koopa), a pit, or a pipe or block wall is within about "
-        "3 character-widths ahead of him."
-    ),
-    "enemy_ahead": (
-        "Is there an enemy (a brown Goomba or a green Koopa) within about 4 character-widths "
-        "in front of Mario?"
-    ),
-    "gap_ahead": (
-        "Is there a gap (a pit with no ground) within about 4 character-widths in front of Mario?"
-    ),
-    "tall_obstacle_ahead": (
-        "Is there a green pipe or a tall stack of blocks within about 3 character-widths "
-        "in front of Mario?"
-    ),
-    "airborne": "Is Mario currently in the air, not standing on the ground or a block?",
-    "transition": (
-        "Is this a black transition screen, such as the level intro with a lives count or "
-        "the death screen, instead of gameplay?"
-    ),
-    "game_over": "Does the screen say GAME OVER?",
-    "title_screen": (
-        "Is this the Super Mario Bros. title screen with the big logo and the 1 PLAYER GAME menu?"
-    ),
-    "level_clear": (
-        "Is Mario at the flagpole or inside the castle at the end of the level, "
-        "or is a level-complete sequence showing?"
-    ),
-}
-
 MARIO = GameProfile(
     name="mario",
     question=(
@@ -67,7 +35,6 @@ MARIO = GameProfile(
         "WALK_JUMP": "Short jump while walking right. Use to hop a close enemy.",
         "WAIT": "Do nothing. Use on transition screens or when waiting is safest.",
     },
-    questions=MARIO_QUESTIONS,
 )
 
 DKC = GameProfile(

@@ -34,6 +34,19 @@ def test_a_title_screen_that_stays_up_asks_for_a_start_without_counting_an_attem
     assert episodes.attempt == 1
 
 
+def test_the_title_attract_demo_is_not_a_game_so_the_first_real_game_is_attempt_one():
+    episodes = EpisodeManager()
+    demo = {"game_over": 0.0, "title_screen": 0.01}
+    for offset in (0, 80, 160):
+        episodes.observe(level_frame(offset, timer=False), demo)
+    assert episodes.progress == 0.0
+
+    title = {"game_over": 0.05, "title_screen": 0.95}
+    assert [episodes.observe(level_frame(0), title) for _ in range(3)] == [False, False, True]
+    episodes.restart(ScriptedFrames(time_frame()), TitlePolicy(0.9), RecordingController(), MARIO)
+    assert episodes.attempt == 1
+
+
 def test_each_life_ends_at_a_black_screen_and_best_progress_is_kept():
     episodes = EpisodeManager()
     episodes.observe(BLACK, PLAYING)  # level intro, not a life
@@ -104,7 +117,7 @@ def test_restart_retries_the_press_until_the_intro_screen_appears(monkeypatch):
     monkeypatch.setattr("s1play.episode.GAMEPLAY_WAIT_S", 0.2)
     episodes = EpisodeManager()
     controller = RecordingController()
-    frames = ScriptedFrames(*([level_frame(0)] * 4), time_frame())
+    frames = ScriptedFrames(*([level_frame(0, timer=False)] * 4), time_frame())
     episodes.restart(frames, TitlePolicy(0.9), controller, MARIO)
     assert len(controller.sent) >= 2
 
@@ -114,7 +127,7 @@ def test_restart_gives_up_when_start_never_registers(monkeypatch):
     controller = RecordingController()
     with pytest.raises(RestartError, match="START"):
         EpisodeManager().restart(
-            ScriptedFrames(level_frame(0)), TitlePolicy(0.9), controller, MARIO
+            ScriptedFrames(level_frame(0, timer=False)), TitlePolicy(0.9), controller, MARIO
         )
     assert len(controller.sent) == 4
 

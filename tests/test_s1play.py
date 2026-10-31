@@ -1,5 +1,6 @@
 import io
 import json
+from pathlib import Path
 
 import httpx
 import pytest
@@ -14,6 +15,7 @@ from s1play.controller import (
 )
 from s1play.frames import prepare
 from s1play.games import GAMES, MARIO
+from s1play.harness import load
 from s1play.law import LawConfig, RunnerLaw
 from s1play.loop import run
 from s1play.policy import (
@@ -27,6 +29,9 @@ from s1play.policy import (
     choice_questions,
     noul_questions,
 )
+
+HARNESS_DIR = Path(__file__).parent.parent / "harnesses" / "jev"
+MARIO_Q = load(HARNESS_DIR / "v0.toml").profile(MARIO)
 
 
 @pytest.mark.parametrize("profile", list(GAMES.values()), ids=list(GAMES))
@@ -80,7 +85,7 @@ def test_clef_request_body_for_choice_question():
 
 
 def test_jev_request_references_the_frame_in_every_question():
-    body = build_jev_request("jev-latest", b"img", noul_questions(MARIO))
+    body = build_jev_request("jev-latest", b"img", noul_questions(MARIO_Q))
     assert body["state"] == {"game_frame": "frame-9c1e"}
     assert body["assets"] == {
         "frame-9c1e": {"type": "image", "data_base64": "aW1n", "format": "jpeg"}
@@ -90,7 +95,7 @@ def test_jev_request_references_the_frame_in_every_question():
 
 
 def test_noul_questions_cover_what_the_law_reads():
-    assert set(noul_questions(MARIO)) == {
+    assert set(noul_questions(MARIO_Q)) == {
         "jump_now",
         "enemy_ahead",
         "gap_ahead",
@@ -147,7 +152,7 @@ def test_choice_policy_over_jev_sends_bearer_and_header(monkeypatch):
 
 
 def noul_body(**probs):
-    base = {qid: 0.05 for qid in MARIO.questions}
+    base = {qid: 0.05 for qid in MARIO_Q.questions}
     base.update(probs)
     return {"answers": {qid: {"type": "noul", "noul": p} for qid, p in base.items()}}
 
@@ -161,7 +166,7 @@ def test_questions_policy_unwraps_cloudflare_result_and_applies_the_law(monkeypa
         return httpx.Response(200, json={"result": noul_body(jump_now=0.9), "success": True})
 
     policy = QuestionsPolicy(client_with(handler, "clef-omni"), RunnerLaw())
-    decision = policy.decide(b"img", MARIO)
+    decision = policy.decide(b"img", MARIO_Q)
 
     assert decision.action == "RUN_JUMP"
     assert decision.scores["jump_now"] == 0.9
@@ -178,7 +183,7 @@ def test_http_error_message_includes_server_response(monkeypatch):
 
 
 def p(**overrides):
-    base = {qid: 0.05 for qid in MARIO.questions}
+    base = {qid: 0.05 for qid in MARIO_Q.questions}
     base.update(overrides)
     return base
 

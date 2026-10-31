@@ -28,6 +28,10 @@ class Policy(Protocol):
     def decide(self, frame: Frame, profile: GameProfile) -> Decision: ...
 
 
+class Asker(Protocol):
+    def ask(self, frame: Frame, questions: Questions) -> dict: ...
+
+
 class RandomPolicy:
     def __init__(self, seed: int | None = None) -> None:
         self._rng = random.Random(seed)
@@ -121,18 +125,23 @@ class SystemOneClient:
 
 
 class ChoicePolicy:
-    def __init__(self, client: SystemOneClient) -> None:
+    def __init__(self, client: Asker) -> None:
         self._client = client
 
     def decide(self, frame: Frame, profile: GameProfile) -> Decision:
         start = time.perf_counter()
-        answer = self._client.ask(frame, choice_questions(profile))[QUESTION_ID]
+        questions = choice_questions(profile)
+        if profile.questions:
+            questions |= noul_questions(profile)
+        answers = self._client.ask(frame, questions)
         ms = (time.perf_counter() - start) * 1000
-        return Decision(answer["choice"], answer["probabilities"], ms)
+        answer = answers[QUESTION_ID]
+        screens = {qid: float(a["noul"]) for qid, a in answers.items() if qid != QUESTION_ID}
+        return Decision(answer["choice"], {**answer["probabilities"], **screens}, ms)
 
 
 class QuestionsPolicy:
-    def __init__(self, client: SystemOneClient, law: RunnerLaw) -> None:
+    def __init__(self, client: Asker, law: RunnerLaw) -> None:
         self._client = client
         self._law = law
 

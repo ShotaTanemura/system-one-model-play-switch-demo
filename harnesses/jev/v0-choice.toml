@@ -1,0 +1,15 @@
+kind = "choice"
+hypothesis = "Baseline: the model picks one action from the menu directly."
+choice_question = "This is a frame of Super Mario Bros. Pick the next input that makes progress to the right while avoiding enemies and pits."
+
+[actions]
+RUN = "Run right. Use when the path ahead is clear."
+RUN_JUMP = "Running jump to the right. Use to clear a gap, pipe or enemy."
+WALK = "Walk right slowly. Use when close to an enemy and about to react."
+WALK_JUMP = "Short jump while walking right. Use to hop a close enemy."
+WAIT = "Do nothing. Use on transition screens or when waiting is safest."
+
+[questions]
+transition = "Is this a black transition screen, such as the level intro with a lives count or the death screen, instead of gameplay?"
+game_over = "Does the screen say GAME OVER?"
+title_screen = "Is this the Super Mario Bros. title screen with the big logo and the 1 PLAYER GAME menu?"
